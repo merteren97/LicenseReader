@@ -16,21 +16,35 @@ namespace LicenseReader
 
             try
             {
-                string decryptedGuid = Decrypt(encryptedText, gizliSifre);
+                string decrypted = Decrypt(encryptedText, gizliSifre);
+                string[] parts = decrypted.Split('|');
+
+                if (parts.Length != 2)
+                {
+                    lblResult.Text = "❌ Geçersiz lisans formatı.";
+                    return;
+                }
+
+                string decryptedGuid = parts[0];
+                DateTime expiryDate = DateTime.Parse(parts[1]);
                 string systemGuid = GetMachineGuid();
 
-                if (decryptedGuid == systemGuid)
+                if (decryptedGuid != systemGuid)
                 {
-                    lblResult.Text = "✅ Doğrulama Başarılı!";
+                    lblResult.Text = "❌ GUID uyuşmuyor.";
+                }
+                else if (expiryDate < DateTime.Now)
+                {
+                    lblResult.Text = "❌ Lisans süresi dolmuş.";
                 }
                 else
                 {
-                    lblResult.Text = "❌ GUID uyuşmuyor.";
+                    lblResult.Text = "✅ Lisans geçerli!";
                 }
             }
             catch
             {
-                lblResult.Text = "❌ Şifre çözülemedi veya hatalı format.";
+                lblResult.Text = "❌ Şifre çözülemedi.";
             }
         }
         private string Decrypt(string cipherText, string key)
